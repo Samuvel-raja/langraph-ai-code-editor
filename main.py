@@ -7,7 +7,6 @@ from agent.graph import agent
 from agent.state import AgentState
 from agent.tools import list_files, read_file, write_file
 
-
 app = FastAPI()
 
 
@@ -30,7 +29,6 @@ def run_agent(task: str):
     result = agent.invoke(initial_state)
 
     return result
-
 
 @app.get("/files")
 def get_files():

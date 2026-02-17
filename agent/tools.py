@@ -58,12 +58,31 @@ def execute_file(filename: str):
     if ext not in commands:
         return "", f"Unsupported file type: {ext}", 1
 
-    process = subprocess.run(
-        commands[ext],
-        cwd=WORKSPACE,
-        capture_output=True,
-        text=True,
-        timeout=20
-    )
+    try:
 
-    return process.stdout, process.stderr, process.returncode
+        process = subprocess.run(
+            commands[ext],
+            cwd=WORKSPACE,
+            capture_output=True,
+            text=True,
+            timeout=10,  # reduce timeout
+            input="Enter the input"     # prevent input blocking
+        )
+
+        return process.stdout, process.stderr, process.returncode
+
+    except subprocess.TimeoutExpired:
+
+        return (
+            "",
+            "Execution timed out. Likely waiting for input() or infinite loop.",
+            1
+        )
+
+    except Exception as e:
+
+        return (
+            "",
+            f"Execution failed: {str(e)}",
+            1
+        )

@@ -7,12 +7,17 @@ from langchain_core.messages import HumanMessage, AIMessage
 from .state import AgentState
 from .tools import write_file, list_files, execute_file
 from .prompt import PLANNER_PROMPT, DEBUGGER_PROMPT
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
+api_key=os.getenv("OPENAI_API_KEY")
 
 # Initialize LLM once (production pattern)
 llm = ChatOpenAI(
     model="gpt-4o-mini",
-    temperature=0
+    temperature=0,
+    api_key=api_key
 )
 
 
@@ -38,11 +43,19 @@ def planner_node(state: AgentState) -> Dict[str, Any]:
     ])
 
     try:
+        print(response.content,"data")
         data = json.loads(response.content)
+        
+        raw_plan = data.get("plan", "")
 
-        plan = data.get("plan", "")
-        files = data.get("files", {})
-        active_file = data.get("active_file", "main.py")
+        if isinstance(raw_plan, list):
+          plan = "\n".join(raw_plan)
+          files = data.get("files", {})
+          active_file = data.get("active_file", "main.py")
+        else:
+                plan = str(raw_plan)
+                files = data.get("files", {})
+                active_file = data.get("active_file", "main.py")
 
     except Exception as e:
         raise Exception(f"Planner returned invalid JSON: {str(e)}")
