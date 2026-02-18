@@ -1,8 +1,0 @@
-venv1/
-__pycache__/
-.env
-.vscode/
-.idea/
-*.log
-*.db
-.ipynb_checkpoints/
