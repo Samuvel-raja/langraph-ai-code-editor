@@ -1,8 +1,72 @@
-venv1/
+# Python cache
 __pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.env/
+.venv/
+ENV/
+env/
+
+# Environment variables
 .env
+.env.*
+*.env
+
+# Logs
+*.log
+logs/
+
+# Build / distribution
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Python installer
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Test / coverage
+.coverage
+.coverage.*
+.cache
+pytest_cache/
+htmlcov/
+
+# FastAPI specific
+*.db
+*.sqlite3
+
+# IDE
 .vscode/
 .idea/
-*.log
-*.db
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Type checker
+.mypy_cache/
+.pytype/
+
+# Ruff / lint cache
+.ruff_cache/
+
+# Pyright
+.pyright/
+
+# Jupyter Notebook
 .ipynb_checkpoints/
+
+# Docker (optional)
+docker-compose.override.yml
+
+# Temporary files
+*.tmp
+*.temp
+
+# Uvicorn
+uvicorn.log
