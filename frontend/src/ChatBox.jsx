@@ -54,11 +54,38 @@ export default function ChatBox() {
         }}
       >
         {messages.map((m, idx) => (
-          <div key={idx} style={{ marginBottom: 6 }}>
-            <strong style={{ color: "#9cdcfe" }}>
-              {m.role === "user" ? "You" : "Assistant"}:
-            </strong>{" "}
-            <span style={{ whiteSpace: "pre-wrap" }}>{m.content}</span>
+          <div
+            key={idx}
+            style={{
+              marginBottom: 6,
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 6,
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <strong style={{ color: "#9cdcfe" }}>
+                {m.role === "user" ? "You" : "Assistant"}:
+              </strong>{" "}
+              <span style={{ whiteSpace: "pre-wrap" }}>{m.content}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setInput(m.content)}
+              title="Copy this message to input"
+              style={{
+                border: "none",
+                background: "transparent",
+                color: "#c5c5c5",
+                cursor: "pointer",
+                padding: 0,
+                fontSize: "14px",
+                lineHeight: 1,
+              }}
+            >
+              
+              ↓
+            </button>
           </div>
         ))}
         {error && (
