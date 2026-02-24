@@ -5,7 +5,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage
 
 from .state import AgentState
-from .tools import write_file, list_files, execute_file
+from .tools import write_file, list_files, execute_file,search_codebase,apply_patches
 from .prompt import PLANNER_PROMPT, DEBUGGER_PROMPT
 from dotenv import load_dotenv
 import os
@@ -25,8 +25,8 @@ from typing import Dict
 
 class PlannerResponse(BaseModel):
     model_config = ConfigDict(
-        extra="forbid",  # prevents unexpected keys
-        strict=True      # enforce strict typing
+        extra="forbid",  
+        strict=True      
     )
 
     plan: str = Field(..., description="Step-by-step plan")
@@ -38,8 +38,34 @@ class PlannerResponse(BaseModel):
         ...,
         description="Filename that should be active"
     )
+    search_results: str = Field(
+        ...,
+        description="Search results"
+    )
 
 
+def search_node(state: AgentState):
+
+    """
+    Searches codebase for relevant context.
+    Updates:
+        state.search_results
+    """
+
+    print("[search_node] entering")
+
+    user_task = state.messages[-1].content
+
+    results = search_codebase(user_task)
+
+    return {
+
+        "search_results": results,
+
+        "messages": [
+            AIMessage(content="Search completed")
+        ]
+    }
 
 def planner_node(state: AgentState) -> Dict[str, Any]:
     """
@@ -51,11 +77,13 @@ def planner_node(state: AgentState) -> Dict[str, Any]:
         - messages
     """
 
+    print("[planner_node] entering")
+
     user_task = state.messages[-1].content
 
     # plan_llm=llm.with_structured_output(PlannerResponse,method="function_calling")
 
-    prompt = PLANNER_PROMPT.format(task=user_task)
+    prompt = PLANNER_PROMPT.format(task=user_task,search_results=state.search_results or "No results",files=json.dumps(state.files, indent=2) or "No files")
 
     response = llm.invoke([
         HumanMessage(content=prompt)])
@@ -64,13 +92,21 @@ def planner_node(state: AgentState) -> Dict[str, Any]:
         data = json.loads(response.content)
         
         raw_plan = data.get("plan", "")
-
+            
         if isinstance(raw_plan, list):
           plan = "\n".join(raw_plan)
+          operation=data.get("operation", "create")
+          files_to_create=data.get("files_to_create", [])
+          files_to_modify=data.get("files_to_modify", [])
+          need_search=data.get("need_search", False)
           files = data.get("files", {})
           active_file = data.get("active_file", "main.py")
         else:
                 plan = str(raw_plan)
+                operation=data.get("operation", "create")
+                files_to_create=data.get("files_to_create", [])
+                files_to_modify=data.get("files_to_modify", [])
+                need_search=data.get("need_search", False)
                 files = data.get("files", {})
                 active_file = data.get("active_file", "main.py")
 
@@ -81,9 +117,19 @@ def planner_node(state: AgentState) -> Dict[str, Any]:
 
         "plan": plan,
 
+        "operation": operation,
+
+        "files_to_create": files_to_create,
+
+        "files_to_modify": files_to_modify,
+
+        "need_search": need_search,
+
         "files": files,
 
         "active_file": active_file,
+
+        "patches": data.get("patches", []),
 
         "messages": [
             AIMessage(content="Planning completed")
@@ -101,6 +147,8 @@ def writer_node(state: AgentState) -> Dict[str, Any]:
         state.files
     """
 
+    print("[writer_node] entering")
+
     for filename, content in state.files.items():
 
         write_file(filename, content)
@@ -117,6 +165,8 @@ def loader_node(state: AgentState) -> Dict[str, Any]:
     Updates:
         state.files
     """
+
+    print("[loader_node] entering")
 
     files = list_files()
 
@@ -136,6 +186,8 @@ def executor_node(state: AgentState) -> Dict[str, Any]:
         state.error
         state.iteration
     """
+
+    print("[executor_node] entering")
 
     active_file = state.active_file
 
@@ -167,6 +219,8 @@ def debugger_node(state: AgentState) -> Dict[str, Any]:
         state.files
         state.messages
     """
+
+    print("[debugger_node] entering")
 
     prompt = DEBUGGER_PROMPT.format(
         plan=state.plan,
@@ -209,10 +263,28 @@ def decision_node(state: AgentState) -> str:
         "debug" or "end"
     """
 
-    if state.error == "":
-        return "end"
-
+    print("[decision_node] entering")
     if state.iteration >= state.max_iterations:
         return "end"
-
+    if state.error == "":
+        return "end"
+    if state.need_search==True:
+        return "search"
+    if state.operation=="modify":
+        return "modify"
+    if state.operation=="create_and_modify":
+        return "modify"
+    if state.operation=="create":
+        return "writer"
+    
     return "debug"
+
+
+def modify_node(state: AgentState) -> Dict[str, Any]:
+
+    print("[modify_node] entering")
+
+    for filename in state.files_to_modify:
+        apply_patches(filename, state.patches)
+
+    return {}

@@ -9,6 +9,8 @@ from agent.tools import list_files, read_file, write_file
 
 app = FastAPI()
 
+LANGCHAIN_TRACING_V2=True
+
 
 app.add_middleware(
     CORSMiddleware,

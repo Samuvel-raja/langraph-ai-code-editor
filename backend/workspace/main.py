@@ -1,8 +1,16 @@
-def add_numbers(num1, num2):
-    return num1 + num2
+import sys
+
+def greet(name):
+    print(f'Hello, {name}!')
+
+
+def main():
+    if len(sys.argv) > 1:
+        name = sys.argv[1]
+    else:
+        name = 'World'
+    greet(name)
+
 
 if __name__ == '__main__':
-    number1 = float(input('Enter the first number: '))
-    number2 = float(input('Enter the second number: '))
-    result = add_numbers(number1, number2)
-    print('The sum is:', result)
+    main()
