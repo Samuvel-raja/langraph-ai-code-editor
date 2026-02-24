@@ -64,7 +64,7 @@ export default function App() {
         <FileTree onSelect={handleSelectFile} />
       </div>
 
-      {/* Editor + Terminal */}
+      {/* Editor + Chat + Terminal */}
       <div
         style={{
           flex: 1,
@@ -73,13 +73,29 @@ export default function App() {
           minWidth: 0,
         }}
       >
-        {/* Editor */}
-        <div style={{ flex: 1, minHeight: 0 }}>
-          <CodeEditor file={file} />
-        </div>
+        {/* Editor + Chat side by side */}
+        <div
+          style={{
+            flex: 1,
+            minHeight: 0,
+            display: "flex",
+            borderBottom: "1px solid #333",
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <CodeEditor file={file} />
+          </div>
 
-        {/* Chat */}
-        <ChatBox />
+          <div
+            style={{
+              width: 360,
+              borderLeft: "1px solid #333",
+              background: "#1e1e1e",
+            }}
+          >
+            <ChatBox />
+          </div>
+        </div>
 
         {/* Terminal */}
         <Terminal />

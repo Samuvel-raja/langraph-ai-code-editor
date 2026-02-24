@@ -39,8 +39,7 @@ export default function ChatBox() {
   return (
     <div
       style={{
-        height: "220px",
-        borderTop: "1px solid #333",
+        height: "100%",
         background: "#1e1e1e",
         display: "flex",
         flexDirection: "column",
